@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "savinganalysis-optima.fullname" . }}-svc
+  labels:
+    {{- include "savinganalysis-optima.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.savinganalysis.service.type }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.savinganalysis.service.port }}
+      targetPort: {{ .Values.savinganalysis.service.targetPort }}
+  selector:
+    {{- include "savinganalysis-optima.selectorLabels" . | nindent 4 }}

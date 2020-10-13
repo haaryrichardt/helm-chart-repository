@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "budget-optima.fullname" . }}-svc
+  labels:
+    {{- include "budget-optima.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.budget.service.type }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.budget.service.port }}
+      targetPort: {{ .Values.budget.service.targetPort }}
+  selector:
+    {{- include "budget-optima.selectorLabels" . | nindent 4 }}

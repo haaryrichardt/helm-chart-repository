@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "payout-optima.fullname" . }}
+  labels:
+    {{- include "payout-optima.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "payout-optima.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+    {{- with .Values.payout.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      labels:
+        {{- include "payout-optima.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.payout.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.payout.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}-{{ .Values.payout.nameOverride }}
+          securityContext:
+            {{- toYaml .Values.payout.securityContext | nindent 12 }}
+          image: "{{ .Values.payout.image.repository }}/{{ .Values.payout.image.name }}:{{ .Values.payout.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.payout.image.pullPolicy }}
+          ports:
+            - name: payout-svc
+              containerPort: {{ .Values.payout.service.targetPort }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.payout.service.port }}
+            initialDelaySeconds: {{ .Values.payout.probes.initialDelaySeconds }}
+            periodSeconds: {{ .Values.payout.probes.periodSeconds }}
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.payout.service.port }}
+            initialDelaySeconds: {{ .Values.payout.probes.initialDelaySeconds }}
+            periodSeconds: {{ .Values.payout.probes.periodSeconds }} 
+          resources:
+            {{- toYaml .Values.payout.resources | nindent 12 }}
+      {{- with .Values.payout.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.payout.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.payout.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

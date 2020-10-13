@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "wms-optima.fullname" . }}
+  labels:
+    {{- include "wms-optima.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "wms-optima.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+    {{- with .Values.wms.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      labels:
+        {{- include "wms-optima.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.wms.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.wms.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}-{{ .Values.wms.nameOverride }}
+          securityContext:
+            {{- toYaml .Values.wms.securityContext | nindent 12 }}
+          image: "{{ .Values.wms.image.repository }}/{{ .Values.wms.image.name }}:{{ .Values.wms.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.wms.image.pullPolicy }}
+          ports:
+            - name: wms-svc
+              containerPort: {{ .Values.wms.service.targetPort }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.wms.service.port }}
+            initialDelaySeconds: {{ .Values.wms.probes.initialDelaySeconds }}
+            periodSeconds: {{ .Values.wms.probes.periodSeconds }}
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.wms.service.port }}
+            initialDelaySeconds: {{ .Values.wms.probes.initialDelaySeconds }}
+            periodSeconds: {{ .Values.wms.probes.periodSeconds }}  
+          resources:
+            {{- toYaml .Values.wms.resources | nindent 12 }}
+      {{- with .Values.wms.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.wms.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.wms.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

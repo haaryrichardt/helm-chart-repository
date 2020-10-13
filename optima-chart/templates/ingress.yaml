@@ -1,0 +1,98 @@
+{{- if .Values.ingress.enabled -}}
+{{- $fullName := include "optima-chart.fullname" . -}}
+{{- if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
+apiVersion: networking.k8s.io/v1beta1
+{{- else -}}
+apiVersion: extensions/v1beta1
+{{- end }}
+kind: Ingress
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "optima-chart.labels" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  rules:
+    - http: 
+        paths:
+          - path: /accounts(/|$)(.*)
+            backend:
+              serviceName: {{ include "accounts-optima.fullname" . }}-svc
+              servicePort: {{ .Values.account.service.port }}
+          - path: /auth(/|$)(.*)
+            backend:
+              serviceName: {{ include "authms-optima.fullname" . }}-svc
+              servicePort: {{ .Values.auth.service.port }}
+          - path: /db(/|$)(.*)
+            backend:
+              serviceName: {{ include "dbms-optima.fullname" . }}-svc
+              servicePort: {{ .Values.db.service.port }}
+          - path: /expenditurereport(/|$)(.*)
+            backend:
+              serviceName: {{ include "expenditure-optima.fullname" . }}-svc
+              servicePort: {{ .Values.expenditure.service.port }}
+          - path: /managesi(/|$)(.*)
+            backend:
+              serviceName: {{ include "managesi-optima.fullname" . }}-svc
+              servicePort: {{ .Values.managesi.service.port }}
+          - path: /mortgage(/|$)(.*)
+            backend:
+              serviceName: {{ include "mortgage-optima.fullname" . }}-svc
+              servicePort: {{ .Values.mortgage.service.port }}
+          - path: /offerings(/|$)(.*)
+            backend:
+              serviceName: {{ include "offerings-optima.fullname" . }}-svc
+              servicePort: {{ .Values.offering.service.port }}
+          - path: /payout(/|$)(.*)
+            backend:
+              serviceName: {{ include "payout-optima.fullname" . }}-svc
+              servicePort: {{ .Values.payout.service.port }}
+          - path: /poolingfunds(/|$)(.*)
+            backend:
+              serviceName: {{ include "poolingfund-optima.fullname" . }}-svc
+              servicePort: {{ .Values.poolingFund.service.port }}
+          - path: /portingfunds(/|$)(.*)
+            backend:
+              serviceName: {{ include "portingfund-optima.fullname" . }}-svc
+              servicePort: {{ .Values.portingFund.service.port }}
+          - path: /twowaypooling(/|$)(.*)
+            backend:
+              serviceName: {{ include "twowaypooling-optima.fullname" . }}-svc
+              servicePort: {{ .Values.twoWayPooling.service.port }}
+          - path: /wms(/|$)(.*)
+            backend:
+              serviceName: {{ include "wms-optima.fullname" . }}-svc
+              servicePort: {{ .Values.wms.service.port }}
+          #### SPRING MICRO SERVICES####
+          - path: /eureka(/|$)(.*)
+            backend:
+              serviceName: {{ include "eureka-optima.fullname" . }}-svc
+              servicePort: {{ .Values.eureka.service.port }}
+          - path: /sprindadmin(/|$)(.*)
+            backend:
+              serviceName: {{ include "springadmin-optima.fullname" . }}-svc
+              servicePort: {{ .Values.springadmin.service.port }}
+          - path: /budget(/|$)(.*)
+            backend:
+              serviceName: {{ include "budget-optima.fullname" . }}-svc
+              servicePort: {{ .Values.budget.service.port }}
+          - path: /transaction(/|$)(.*)
+            backend:
+              serviceName: {{ include "transaction-optima.fullname" . }}-svc
+              servicePort: {{ .Values.transaction.service.port }}
+          - path: /category(/|$)(.*)
+            backend:
+              serviceName: {{ include "category-optima.fullname" . }}-svc
+              servicePort: {{ .Values.category.service.port }}
+          - path: /savinganalysis(/|$)(.*)
+            backend:
+              serviceName: {{ include "savinganalysis-optima.fullname" . }}-svc
+              servicePort: {{ .Values.savinganalysis.service.port }}
+          - path: /spendanalysis(/|$)(.*)
+            backend:
+              serviceName: {{ include "spendanalysis-optima.fullname" . }}-svc
+              servicePort: {{ .Values.spendanalysis.service.port }}
+{{- end }}

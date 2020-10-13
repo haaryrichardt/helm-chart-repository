@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "portingfund-optima.fullname" . }}
+  labels:
+    {{- include "portingfund-optima.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "portingfund-optima.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+    {{- with .Values.portingFund.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      labels:
+        {{- include "portingfund-optima.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.portingFund.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.portingFund.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}-{{ .Values.portingFund.nameOverride }}
+          securityContext:
+            {{- toYaml .Values.portingFund.securityContext | nindent 12 }}
+          image: "{{ .Values.portingFund.image.repository }}/{{ .Values.portingFund.image.name }}:{{ .Values.portingFund.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.portingFund.image.pullPolicy }}
+          ports:
+            - name: portingfund-svc
+              containerPort: {{ .Values.portingFund.service.targetPort }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /stylesheets/style.css
+              port: {{ .Values.portingFund.service.port }}
+            initialDelaySeconds: {{ .Values.portingFund.probes.initialDelaySeconds }}
+            periodSeconds: {{ .Values.portingFund.probes.periodSeconds }}
+          readinessProbe:
+            httpGet:
+              path: /stylesheets/style.css
+              port: {{ .Values.portingFund.service.port }}
+            initialDelaySeconds: {{ .Values.portingFund.probes.initialDelaySeconds }}
+            periodSeconds: {{ .Values.portingFund.probes.periodSeconds }} 
+          resources:
+            {{- toYaml .Values.portingFund.resources | nindent 12 }}
+      {{- with .Values.portingFund.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.portingFund.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.portingFund.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

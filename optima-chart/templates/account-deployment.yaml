@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "accounts-optima.fullname" . }}
+  labels:
+    {{- include "accounts-optima.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "accounts-optima.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+    {{- with .Values.account.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      labels:
+        {{- include "accounts-optima.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.account.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.account.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}-{{ .Values.account.nameOverride }}
+          securityContext:
+            {{- toYaml .Values.account.securityContext | nindent 12 }}
+          image: "{{ .Values.account.image.repository }}/{{ .Values.account.image.name }}:{{ .Values.account.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.account.image.pullPolicy }}
+          ports:
+            - name: account-svc
+              containerPort: {{ .Values.account.service.targetPort }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.account.service.port }}
+            initialDelaySeconds: {{ .Values.account.probes.initialDelaySeconds }}
+            periodSeconds: {{ .Values.account.probes.periodSeconds }}
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.account.service.port }}
+            initialDelaySeconds: {{ .Values.account.probes.initialDelaySeconds }}
+            periodSeconds: {{ .Values.account.probes.periodSeconds }} 
+          resources:
+            {{- toYaml .Values.account.resources | nindent 12 }}
+      {{- with .Values.account.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.account.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.account.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

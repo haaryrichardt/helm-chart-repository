@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "wms-optima.fullname" . }}-svc
+  labels:
+    {{- include "wms-optima.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.wms.service.type }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.wms.service.port }}
+      targetPort: {{ .Values.wms.service.targetPort }}
+      name: wms-svc
+  selector:
+    {{- include "wms-optima.selectorLabels" . | nindent 4 }}

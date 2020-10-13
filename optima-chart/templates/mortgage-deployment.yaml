@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "mortgage-optima.fullname" . }}
+  labels:
+    {{- include "mortgage-optima.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "mortgage-optima.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+    {{- with .Values.mortgage.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      labels:
+        {{- include "mortgage-optima.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.mortgage.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.mortgage.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}-{{ .Values.mortgage.nameOverride }}
+          securityContext:
+            {{- toYaml .Values.mortgage.securityContext | nindent 12 }}
+          image: "{{ .Values.mortgage.image.repository }}/{{ .Values.mortgage.image.name }}:{{ .Values.mortgage.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.mortgage.image.pullPolicy }}
+          ports:
+            - name: mortgage-svc
+              containerPort: {{ .Values.mortgage.service.targetPort }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.mortgage.service.port }}
+            initialDelaySeconds: {{ .Values.mortgage.probes.initialDelaySeconds }}
+            periodSeconds: {{ .Values.mortgage.probes.periodSeconds }}
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.mortgage.service.port }}
+            initialDelaySeconds: {{ .Values.mortgage.probes.initialDelaySeconds }}
+            periodSeconds: {{ .Values.mortgage.probes.periodSeconds }} 
+          resources:
+            {{- toYaml .Values.mortgage.resources | nindent 12 }}
+      {{- with .Values.mortgage.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.mortgage.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.mortgage.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

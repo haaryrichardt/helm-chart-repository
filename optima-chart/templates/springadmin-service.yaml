@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "springadmin-optima.fullname" . }}-svc
+  labels:
+    {{- include "springadmin-optima.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.springadmin.service.type }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.springadmin.service.port }}
+      targetPort: {{ .Values.springadmin.service.targetPort }}
+  selector:
+    {{- include "springadmin-optima.selectorLabels" . | nindent 4 }}

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "offerings-optima.fullname" . }}-svc
+  labels:
+    {{- include "offerings-optima.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.offering.service.type }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.offering.service.port }}
+      targetPort: {{ .Values.offering.service.targetPort }}
+      name: offering-svc
+  selector:
+    {{- include "offerings-optima.selectorLabels" . | nindent 4 }}

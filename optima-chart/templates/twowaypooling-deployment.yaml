@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "twowaypooling-optima.fullname" . }}
+  labels:
+    {{- include "twowaypooling-optima.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "twowaypooling-optima.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+    {{- with .Values.twoWayPooling.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      labels:
+        {{- include "twowaypooling-optima.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.twoWayPooling.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.twoWayPooling.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}-{{ .Values.twoWayPooling.nameOverride }}
+          securityContext:
+            {{- toYaml .Values.twoWayPooling.securityContext | nindent 12 }}
+          image: "{{ .Values.twoWayPooling.image.repository }}/{{ .Values.twoWayPooling.image.name }}:{{ .Values.twoWayPooling.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.twoWayPooling.image.pullPolicy }}
+          ports:
+            - name: twpooling-svc
+              containerPort: {{ .Values.twoWayPooling.service.targetPort }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.twoWayPooling.service.port }}
+            initialDelaySeconds: {{ .Values.twoWayPooling.probes.initialDelaySeconds }}
+            periodSeconds: {{ .Values.twoWayPooling.probes.periodSeconds }}
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.twoWayPooling.service.port }}
+            initialDelaySeconds: {{ .Values.twoWayPooling.probes.initialDelaySeconds }}
+            periodSeconds: {{ .Values.twoWayPooling.probes.periodSeconds }} 
+          resources:
+            {{- toYaml .Values.twoWayPooling.resources | nindent 12 }}
+      {{- with .Values.twoWayPooling.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.twoWayPooling.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.twoWayPooling.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

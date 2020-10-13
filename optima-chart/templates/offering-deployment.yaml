@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "offerings-optima.fullname" . }}
+  labels:
+    {{- include "offerings-optima.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "offerings-optima.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+    {{- with .Values.offering.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      labels:
+        {{- include "offerings-optima.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.offering.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.offering.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}-{{ .Values.offering.nameOverride }}
+          securityContext:
+            {{- toYaml .Values.offering.securityContext | nindent 12 }}
+          image: "{{ .Values.offering.image.repository }}/{{ .Values.offering.image.name }}:{{ .Values.offering.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.offering.image.pullPolicy }}
+          ports:
+            - name: offering-svc
+              containerPort: {{ .Values.offering.service.targetPort }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.offering.service.port }}
+            initialDelaySeconds: {{ .Values.offering.probes.initialDelaySeconds }}
+            periodSeconds: {{ .Values.offering.probes.periodSeconds }}
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.offering.service.port }}
+            initialDelaySeconds: {{ .Values.offering.probes.initialDelaySeconds }}
+            periodSeconds: {{ .Values.offering.probes.periodSeconds }} 
+          resources:
+            {{- toYaml .Values.offering.resources | nindent 12 }}
+      {{- with .Values.offering.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.offering.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.offering.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

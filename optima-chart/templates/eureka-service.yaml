@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "eureka-optima.fullname" . }}-svc
+  labels:
+    {{- include "eureka-optima.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.eureka.service.type }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.eureka.service.port }}
+      targetPort: {{ .Values.eureka.service.targetPort }}
+  selector:
+    {{- include "eureka-optima.selectorLabels" . | nindent 4 }}

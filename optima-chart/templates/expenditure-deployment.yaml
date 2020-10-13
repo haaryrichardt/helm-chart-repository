@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "expenditure-optima.fullname" . }}
+  labels:
+    {{- include "expenditure-optima.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "expenditure-optima.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+    {{- with .Values.expenditure.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      labels:
+        {{- include "expenditure-optima.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.expenditure.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.expenditure.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}-{{ .Values.expenditure.nameOverride }}
+          securityContext:
+            {{- toYaml .Values.expenditure.securityContext | nindent 12 }}
+          image: "{{ .Values.expenditure.image.repository }}/{{ .Values.expenditure.image.name }}:{{ .Values.expenditure.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.expenditure.image.pullPolicy }}
+          ports:
+            - name: expenditure-svc
+              containerPort: {{ .Values.expenditure.service.targetPort }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.expenditure.service.port }}
+            initialDelaySeconds: {{ .Values.expenditure.probes.initialDelaySeconds }}
+            periodSeconds: {{ .Values.expenditure.probes.periodSeconds }}
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.expenditure.service.port }}
+            initialDelaySeconds: {{ .Values.expenditure.probes.initialDelaySeconds }}
+            periodSeconds: {{ .Values.expenditure.probes.periodSeconds }} 
+          resources:
+            {{- toYaml .Values.expenditure.resources | nindent 12 }}
+      {{- with .Values.expenditure.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.expenditure.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.expenditure.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

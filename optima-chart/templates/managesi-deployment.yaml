@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "managesi-optima.fullname" . }}
+  labels:
+    {{- include "managesi-optima.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "managesi-optima.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+    {{- with .Values.managesi.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      labels:
+        {{- include "managesi-optima.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.managesi.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.managesi.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}-{{ .Values.managesi.nameOverride }}
+          securityContext:
+            {{- toYaml .Values.managesi.securityContext | nindent 12 }}
+          image: "{{ .Values.managesi.image.repository }}/{{ .Values.managesi.image.name }}:{{ .Values.managesi.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.managesi.image.pullPolicy }}
+          ports:
+            - name: managesi-svc
+              containerPort: {{ .Values.managesi.service.targetPort }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.managesi.service.port }}
+            initialDelaySeconds: {{ .Values.managesi.probes.initialDelaySeconds }}
+            periodSeconds: {{ .Values.managesi.probes.periodSeconds }}
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.managesi.service.port }}
+            initialDelaySeconds: {{ .Values.managesi.probes.initialDelaySeconds }}
+            periodSeconds: {{ .Values.managesi.probes.periodSeconds }} 
+          resources:
+            {{- toYaml .Values.managesi.resources | nindent 12 }}
+      {{- with .Values.managesi.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.managesi.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.managesi.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

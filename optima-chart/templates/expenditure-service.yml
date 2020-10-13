@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "expenditure-optima.fullname" . }}-svc
+  labels:
+    {{- include "expenditure-optima.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.expenditure.service.type }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.expenditure.service.port }}
+      targetPort: {{ .Values.expenditure.service.targetPort }}
+      name: expenditure-svc
+  selector:
+    {{- include "expenditure-optima.selectorLabels" . | nindent 4 }}

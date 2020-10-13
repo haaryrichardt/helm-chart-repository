@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "poolingfund-optima.fullname" . }}
+  labels:
+    {{- include "poolingfund-optima.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "poolingfund-optima.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+    {{- with .Values.poolingFund.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      labels:
+        {{- include "poolingfund-optima.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.poolingFund.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.poolingFund.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}-{{ .Values.poolingFund.nameOverride }}
+          securityContext:
+            {{- toYaml .Values.poolingFund.securityContext | nindent 12 }}
+          image: "{{ .Values.poolingFund.image.repository }}/{{ .Values.poolingFund.image.name }}:{{ .Values.poolingFund.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.poolingFund.image.pullPolicy }}
+          ports:
+            - name: poolingfund-svc
+              containerPort: {{ .Values.poolingFund.service.targetPort }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.poolingFund.service.port }}
+            initialDelaySeconds: {{ .Values.poolingFund.probes.initialDelaySeconds }}
+            periodSeconds: {{ .Values.poolingFund.probes.periodSeconds }}
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.poolingFund.service.port }}
+            initialDelaySeconds: {{ .Values.poolingFund.probes.initialDelaySeconds }}
+            periodSeconds: {{ .Values.poolingFund.probes.periodSeconds }} 
+          resources:
+            {{- toYaml .Values.poolingFund.resources | nindent 12 }}
+      {{- with .Values.poolingFund.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.poolingFund.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.poolingFund.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

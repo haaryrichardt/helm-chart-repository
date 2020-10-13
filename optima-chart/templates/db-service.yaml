@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "dbms-optima.fullname" . }}-svc
+  labels:
+    {{- include "dbms-optima.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.db.service.type }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.db.service.port }}
+      targetPort: {{ .Values.db.service.targetPort }}
+      name: db-svc
+  selector:
+    {{- include "dbms-optima.selectorLabels" . | nindent 4 }}

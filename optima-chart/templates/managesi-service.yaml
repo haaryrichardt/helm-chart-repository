@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "managesi-optima.fullname" . }}-svc
+  labels:
+    {{- include "managesi-optima.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.managesi.service.type }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.managesi.service.port }}
+      targetPort: {{ .Values.managesi.service.targetPort }}
+      name: managesi-svc
+  selector:
+    {{- include "managesi-optima.selectorLabels" . | nindent 4 }}

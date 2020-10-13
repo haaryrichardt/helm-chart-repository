@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "twowaypooling-optima.fullname" . }}-svc
+  labels:
+    {{- include "twowaypooling-optima.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.twoWayPooling.service.type }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.twoWayPooling.service.port }}
+      targetPort: {{ .Values.twoWayPooling.service.targetPort }}
+      name: twpooling-svc
+  selector:
+    {{- include "twowaypooling-optima.selectorLabels" . | nindent 4 }}

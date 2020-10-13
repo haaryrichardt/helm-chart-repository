@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "accounts-optima.fullname" . }}-svc
+  labels:
+    {{- include "accounts-optima.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.account.service.type }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.account.service.port }}
+      targetPort: {{ .Values.account.service.targetPort }}
+      name: account-svc
+  selector:
+    {{- include "accounts-optima.selectorLabels" . | nindent 4 }}

@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "spendanalysis-optima.fullname" . }}-svc
+  labels:
+    {{- include "spendanalysis-optima.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.spendanalysis.service.type }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.spendanalysis.service.port }}
+      targetPort: {{ .Values.spendanalysis.service.targetPort }}
+  selector:
+    {{- include "spendanalysis-optima.selectorLabels" . | nindent 4 }}
